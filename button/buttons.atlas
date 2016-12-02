@@ -1,0 +1,9 @@
+images {
+  image: "/button/button_bg/amethyst.png"
+}
+images {
+  image: "/button/button_bg/sun_flower.png"
+}
+margin: 0
+extrude_borders: 0
+inner_padding: 0

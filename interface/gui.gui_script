@@ -1,0 +1,70 @@
+local abc = {"a","b","c","d","e","f","g","h"}
+local alphabet_list = {}
+
+function init(self)
+    -- fetch the score text node for later use (assumes it is called "score")
+
+    
+    self.score_node = gui.get_node("score")
+    
+    self.left_node = gui.get_node("left_text")
+    
+    self.middle_node = gui.get_node("middle_text")
+    
+    self.right_node = gui.get_node("right_text")
+
+    
+
+    
+    -- keep track of the current score counted up so far
+    self.current_score = 30
+    
+    -- keep track of the target score we should count up to
+    self.target_score = 0
+    
+    -- how fast we will update the score, in score/second
+    self.score_update_speed = 1
+    
+    
+    
+    for i=1,3 do 
+    	
+    	local s = abc[math.random(#abc)]
+    	
+    	print(s)
+    	table.insert(alphabet_list, s)
+    
+    end
+    
+    print(alphabet_list)
+    
+end
+
+function update(self, dt)
+	
+    -- check if target score is more than current score
+    if self.current_score > self.target_score then
+        -- increment current score according to the speed
+        self.current_score = self.current_score - dt * self.score_update_speed
+        -- check if we went past the target score, clamp current score in that case
+        if self.current_score <= self.target_score then
+            self.current_score = self.target_score
+        end
+        -- update the score text node
+        gui.set_text(self.score_node, "" .. math.floor(self.current_score))
+    end
+end
+
+function on_message(self, message_id, message, sender)
+    -- check the message
+    if message_id == hash("set_score") then
+        self.target_score = message.score
+    end
+    
+    -- TODO set new random alphabet to buttons on message--
+    if message_id == hash("new_string") then
+    
+    	local s = abc[math.random(#abc)]
+    	
+    end
+end
