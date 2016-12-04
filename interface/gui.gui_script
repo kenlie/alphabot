@@ -1,13 +1,18 @@
-local abc = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
+local abc = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"}
 local alphabet_list = {}
 local sorted_alphabet_list = {}
 local abc_sequence = {}
+local complete = 0
+local score = 0
 
 function init(self)
-    -- fetch the score text node for later use (assumes it is called "score")
-
+    -- fetch the time text node for later use (assumes it is called "time")
     
-    self.score_node = gui.get_node("score")
+	
+    
+    self.time_node = gui.get_node("time")
+    
+    self.combo_node = gui.get_node("combo_text")
     
     self.left_node = gui.get_node("left_text")
     
@@ -15,9 +20,7 @@ function init(self)
     
     self.right_node = gui.get_node("right_text")
     
-    
-    --self.left_node = gui.set_text(node, text)
-    
+    --Set initial buttons
     randomstring()
     tbl = alphabet_list
     sorted = sorted_alphabet_list
@@ -29,18 +32,22 @@ function init(self)
 	self.middle_node = gui.set_text(self.middle_node, tbl[2])
 	self.right_node = gui.set_text(self.right_node, tbl[3])
 	
+	--Set initial score
+	
+	self.combo_node = gui.set_text(self.combo_node, score)
+    
+      
 
     
-
+    -- keep track of the current time counted up so far
+    self.current_time = 30
     
-    -- keep track of the current score counted up so far
-    self.current_score = 30
+    -- keep track of the target time we should count up to
+    self.target_time = 0
     
-    -- keep track of the target score we should count up to
-    self.target_score = 0
+    -- how fast we will update the time, in time/second
+    self.time_update_speed = 1
     
-    -- how fast we will update the score, in score/second
-    self.score_update_speed = 1
 	   
 	   
 	msg.post(".", "acquire_input_focus")
@@ -50,18 +57,35 @@ function init(self)
 end
 
 function update(self, dt)
+
 	
-    -- check if target score is more than current score
-    if self.current_score > self.target_score then
-        -- increment current score according to the speed
-        self.current_score = self.current_score - dt * self.score_update_speed
-        -- check if we went past the target score, clamp current score in that case
-        if self.current_score <= self.target_score then
-            self.current_score = self.target_score
+    -- check if target time is more than current time
+    if self.current_time > self.target_time then
+        -- increment current time according to the speed
+        self.current_time = self.current_time - dt * self.time_update_speed
+        -- check if we went past the target time, clamp current time in that case
+        if self.current_time <= self.target_time then
+            self.current_time = self.target_time
         end
-        -- update the score text node
-        gui.set_text(self.score_node, "" .. math.floor(self.current_score))
+        -- update the time text node
+        gui.set_text(self.time_node, "" .. math.floor(self.current_time))
     end
+    
+
+    
+    if complete == 3 then
+    	msg.post("#", "sequence_complete")
+    	msg.post("#", "increment_score")
+
+	end
+	
+	--[[if self.current_time == 0 then
+	
+		msg.post("#", "time_out")
+		
+	end--]]
+	
+	
     
 
     
@@ -81,7 +105,7 @@ function randomstring(self)
 
 	while table.getn(alphabet_list) < 3 do
 	
-		local s = abc[math.random(35)]
+		local s = abc[math.random(26)]
 		
 		for k in pairs (alphabet_list) do
 			
@@ -101,7 +125,7 @@ function randomstring(self)
 		
 		flag = 1		
 	
-		local s = abc[math.random(35)]
+		local s = abc[math.random(26)]
 		
 	end
 	
@@ -115,40 +139,83 @@ function delete_randomstring(self)
     	alphabet_list[k] = nil
 	end
 	
+	for k in pairs (sorted_alphabet_list) do
+    	sorted_alphabet_list[k] = nil
+	end
+	
+	for k in pairs (abc_sequence) do
+    	abc_sequence[k] = nil
+	end
+	
 end
 
 
 function on_message(self, message_id, message, sender)
+
     -- check the message
-    if message_id == hash("set_score") then
-        self.target_score = message.score
+    if message_id == hash("set_time") then
+        self.target_time = message.time
     end
     
-    -- TODO set new random alphabet to buttons on message--
-    if message_id == hash("new_string") then
+	local left_node = gui.get_node("left_text")
+    local middle_node = gui.get_node("middle_text")	    
+    local right_node = gui.get_node("right_text")
+    local combo_node = gui.get_node("combo_text")
     
-    	local s = abc[math.random(#abc)]
+    
+    -- Set new letters to button
+    if message_id == hash("sequence_complete") then
     	
+        gui.set_enabled(left_node, true)
+		gui.set_enabled(middle_node, true)
+		gui.set_enabled(right_node, true)
+		
+    	delete_randomstring()
+    	print("deletedString")
+	    randomstring()
+	    tbl = alphabet_list
+	    sorted = sorted_alphabet_list
+	    
+	    print(tbl[1],tbl[2],tbl[3])
+	    print(sorted[1],sorted[2],sorted[3])
+	    
+		gui.set_text(left_node, tbl[1])
+		gui.set_text(middle_node, tbl[2])
+		gui.set_text(right_node, tbl[3])
+		
+		msg.post(".", "acquire_input_focus")
+    	complete = 0
     end
+    
+    -- increment score
+    if message_id == hash("increment_score") then
+    	score = score +1
+		gui.set_text(combo_node, score)
+	end
+    	
+    
 end
 
 function on_input(self, action_id, action)
+
 	if action_id == hash("mouse_press") and action.pressed then
 		local x = action.x
 		local y = action.y
 		
 		
-	    local left_node = gui.get_node("left_text")
-	    local middle_node = gui.get_node("middle_text")	    
-	    local right_node = gui.get_node("right_text")
+		
+	    left_node = gui.get_node("left_text")
+	    middle_node = gui.get_node("middle_text")	    
+	    right_node = gui.get_node("right_text")
 	    
 	    if gui.pick_node(left_node, x, y) then
 	    	
 	    	a = gui.get_text(left_node)	    	
-	    	table.insert(abc_sequence, a)  
+	    	table.insert(abc_sequence, a)
 	    	
 	    	if compare_tables() then 	
 	    		gui.set_enabled(left_node, false)
+	    		complete = complete +1
 	    		
 	    	elseif compare_tables() == false then
 	    	
@@ -158,6 +225,7 @@ function on_input(self, action_id, action)
 				gui.set_enabled(left_node, true)
 				gui.set_enabled(middle_node, true)
 				gui.set_enabled(right_node, true)
+				complete = 0
 	    	end
 	    		    	
 	    	print("left")
@@ -165,11 +233,11 @@ function on_input(self, action_id, action)
 	    elseif gui.pick_node(middle_node, x, y) then
 	    
 	    	b = gui.get_text(middle_node)	    	
-	    	table.insert(abc_sequence, b)	
-	    	print(abc_sequence[1]) 
+	    	table.insert(abc_sequence, b)
 	    	   	
 	    	if compare_tables() then 	
 	    		gui.set_enabled(middle_node, false)
+	    		complete = complete +1
 	    	
 	    	elseif compare_tables() == false then
 	    	
@@ -179,10 +247,11 @@ function on_input(self, action_id, action)
 				gui.set_enabled(left_node, true)
 				gui.set_enabled(middle_node, true)
 				gui.set_enabled(right_node, true)
+				complete = 0
 				
 	    	end
 	    	
-	    	print("middle")
+	    	print("middle") 
 	    	
 	    elseif gui.pick_node(right_node, x, y) then
 	    
@@ -191,6 +260,7 @@ function on_input(self, action_id, action)
 	    	    	
 	    	if compare_tables() then 	
 	    		gui.set_enabled(right_node, false)
+	    		complete = complete +1
 	    		
 	    	elseif compare_tables() == false then
 	    	
@@ -201,9 +271,9 @@ function on_input(self, action_id, action)
 				gui.set_enabled(left_node, true)
 				gui.set_enabled(middle_node, true)
 				gui.set_enabled(right_node, true)
+				complete = 0
 				
 	    	end
-	    	
 	    	print("right")
 	    end
 	end
@@ -212,7 +282,8 @@ end
 function compare_tables(self)
 	for k in pairs (abc_sequence) do
 		if abc_sequence[k] ~= sorted_alphabet_list[k] then
-		print(k)
+		print(abc_sequence[k], "vs", sorted_alphabet_list[k])
+		print("not correct")
 		return false 	
 		end
 	end
