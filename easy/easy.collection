@@ -1,11 +1,11 @@
-name: "default"
+name: "easy"
 instances {
   id: "background"
-  prototype: "/interface/background.go"
+  prototype: "/easy/background.go"
   position {
-    x: 0.0
-    y: 0.0
-    z: -0.1
+    x: 540.0
+    y: 560.0
+    z: 0.0
   }
   rotation {
     x: 0.0
@@ -21,10 +21,10 @@ instances {
 }
 scale_along_z: 0
 embedded_instances {
-  id: "controller"
+  id: "gui"
   data: "components {\n"
-  "  id: \"script\"\n"
-  "  component: \"/interface/controller.script\"\n"
+  "  id: \"gui\"\n"
+  "  component: \"/easy/level.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -56,10 +56,10 @@ embedded_instances {
   }
 }
 embedded_instances {
-  id: "gui"
+  id: "menu"
   data: "components {\n"
   "  id: \"gui\"\n"
-  "  component: \"/interface/level.gui\"\n"
+  "  component: \"/easy/menu.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -76,7 +76,7 @@ embedded_instances {
   position {
     x: 0.0
     y: 0.0
-    z: 0.0
+    z: 1.0
   }
   rotation {
     x: 0.0
